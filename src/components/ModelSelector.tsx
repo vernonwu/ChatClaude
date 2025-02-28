@@ -20,7 +20,6 @@ const models = [
 
 export function ModelSelector() {
   const { selectedModel, setSelectedModel } = useStore();
-  const currentModel = models.find(m => m.id === selectedModel);
 
   return (
     <select
@@ -35,4 +34,4 @@ export function ModelSelector() {
       ))}
     </select>
   );
-} 
+}

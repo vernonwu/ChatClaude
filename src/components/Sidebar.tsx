@@ -53,7 +53,7 @@ export function Sidebar({ isHovered }: SidebarProps) {
   };
 
   return (
-    <div 
+    <div
       className={cn(
         "flex flex-col w-full h-full bg-black text-white shadow-lg transition-transform duration-300",
         !isPinned && !isHovered && "-translate-x-full"
@@ -88,7 +88,7 @@ export function Sidebar({ isHovered }: SidebarProps) {
               <ChatBubbleLeftIcon className="w-5 h-5 shrink-0" />
               <span className="truncate">{thread.title}</span>
             </button>
-            
+
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -122,4 +122,4 @@ export function Sidebar({ isHovered }: SidebarProps) {
       </div>
     </div>
   );
-} 
+}

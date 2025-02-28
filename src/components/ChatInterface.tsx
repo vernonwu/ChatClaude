@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { PaperAirplaneIcon, PencilIcon } from '@heroicons/react/24/outline';
+import { PencilIcon } from '@heroicons/react/24/outline';
 import { useStore, Message } from '@/lib/store';
 import { sendMessage, streamMessage } from '@/lib/claude';
 import { MarkdownMessage } from './MarkdownMessage';
@@ -236,7 +236,7 @@ export function ChatInterface() {
         <div ref={messagesEndRef} />
       </div>
 
-      <form 
+      <form
         onSubmit={handleSubmit}
         className="relative px-4 py-3 border-t border-[var(--claude-dark-300)] bg-[var(--claude-dark-200)] group"
       >
@@ -254,4 +254,4 @@ export function ChatInterface() {
       </form>
     </div>
   );
-} 
+}
