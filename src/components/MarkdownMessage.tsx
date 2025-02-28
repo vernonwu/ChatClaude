@@ -26,12 +26,12 @@ export function MarkdownMessage({ content, className }: MarkdownMessageProps) {
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-          code({ inline, className, children, ...props }) {
+          code({className, children, ...props }) {
             const match = /language-(\w+)/.exec(className || '');
             const language = match ? match[1] : '';
             const blockId = Math.random().toString(36).substring(7);
 
-            if (!inline && language) {
+            if (language) {
               return (
                 <div className="relative group">
                   <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
