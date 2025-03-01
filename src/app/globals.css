@@ -8,24 +8,58 @@
 :root {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --background: #1a1a1a;
-  --foreground: #ffffff;
-  --claude-purple: #6B4AE3;
-  --claude-purple-light: #8B71F3;
-  --claude-purple-dark: #4A2FB3;
-  --claude-dark-50: #2a2a2a;
-  --claude-dark-100: #252525;
-  --claude-dark-200: #202020;
-  --claude-dark-300: #1a1a1a;
-  --claude-dark-700: #141414;
-  --claude-dark-800: #111111;
-  --claude-dark-900: #0a0a0a;
+  
+  /* Modern color palette */
+  --background: #111827;
+  --foreground: #f3f4f6;
+  
+  /* Primary colors */
+  --claude-purple: #8b5cf6;
+  --claude-purple-light: #a78bfa;
+  --claude-purple-dark: #7c3aed;
+  
+  /* Gradient accents */
+  --gradient-purple: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+  
+  /* Dark mode shades */
+  --claude-dark-50: #374151;
+  --claude-dark-100: #1f2937;
+  --claude-dark-200: #1a202c;
+  --claude-dark-300: #111827;
+  --claude-dark-700: #0f172a;
+  --claude-dark-800: #0b1120;
+  --claude-dark-900: #080b14;
+
+  /* Surface treatments */
+  --surface-light: rgba(255, 255, 255, 0.05);
+  --surface-hover: rgba(255, 255, 255, 0.1);
+  --surface-active: rgba(255, 255, 255, 0.15);
+
+  /* UI elements */
+  --border-color: rgba(255, 255, 255, 0.1);
+  --focus-ring: 0 0 0 2px var(--claude-purple-light);
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+  
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Border radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-full: 9999px;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #1a1a1a;
-    --foreground: #ffffff;
+    --background: #111827;
+    --foreground: #f3f4f6;
   }
 }
 
@@ -33,8 +67,36 @@ body {
   color: var(--foreground);
   background: var(--background);
   font-family: var(--font-sans);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 code {
   font-family: var(--font-mono);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--claude-dark-300);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--claude-dark-50);
+  border-radius: var(--radius-md);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--claude-dark-100);
+}
+
+/* Modern focus styles */
+*:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }

@@ -5,6 +5,7 @@ import { sendMessage, streamMessage } from '@/lib/claude';
 import { MarkdownMessage } from './MarkdownMessage';
 import { MarkdownInput } from './MarkdownInput';
 import { ModelSelector } from './ModelSelector';
+import { ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
 
 export function ChatInterface() {
   const [input, setInput] = useState('');
@@ -55,26 +56,34 @@ export function ChatInterface() {
       ...currentThread!.messages[messageIndex],
       content: editInput.trim()
     };
-    updateMessage(currentThreadId, messageId, updatedMessage);
-
-    // Delete all messages after this one
-    deleteMessagesAfter(currentThreadId, messageIndex);
-
+    
     // Clear editing state
     setEditingMessageId(null);
     setEditInput('');
-
+    
     // Start new generation
     setIsLoading(true);
-
+    
+    // First update the message and delete messages after this one
+    await updateMessage(currentThreadId, messageId, updatedMessage);
+    await deleteMessagesAfter(currentThreadId, messageIndex);
+    
     // Create new AbortController for this stream
     abortControllerRef.current = new AbortController();
 
     try {
+      // Get the updated thread state after the updates
+      const updatedThread = useStore.getState().threads.find(t => t.id === currentThreadId);
+      if (!updatedThread) {
+        setIsLoading(false);
+        return;
+      }
+      
       const messageStream = streamMessage(
-        [...currentThread!.messages.slice(0, messageIndex + 1)],
+        [...updatedThread.messages],
         selectedModel,
-        abortControllerRef.current.signal
+        abortControllerRef.current.signal,
+        "You are a helpful assistant. Always respond in markdown format. Use code blocks with appropriate language tags for any code examples, like ```javascript ... ``` for JavaScript code. Format headers with # for main headings and ## for subheadings."
       );
 
       let lastMessageId: string | null = null;
@@ -125,34 +134,44 @@ export function ChatInterface() {
       createdAt: new Date(),
     };
 
-    addMessage(currentThreadId, userMessage);
     setInput('');
     setIsLoading(true);
+
+    // Add user message to the store
+    await addMessage(currentThreadId, userMessage);
 
     // If this is the first message, get a topic summary
     if (currentThread?.messages.length === 0) {
       const summary = await getTopicSummary(userMessage.content);
-      updateThreadTitle(currentThreadId, summary);
+      await updateThreadTitle(currentThreadId, summary);
     }
 
     // Create new AbortController for this stream
     abortControllerRef.current = new AbortController();
 
     try {
+      // Get the updated thread state after adding the user message
+      const updatedThread = useStore.getState().threads.find(t => t.id === currentThreadId);
+      if (!updatedThread) {
+        setIsLoading(false);
+        return;
+      }
+      
       const messageStream = streamMessage(
-        [...(currentThread?.messages || []), userMessage],
+        [...updatedThread.messages],
         selectedModel,
-        abortControllerRef.current.signal
+        abortControllerRef.current.signal,
+        "You are a helpful assistant. Always respond in markdown format. Use code blocks with appropriate language tags for any code examples, like ```javascript ... ``` for JavaScript code. Format headers with # for main headings and ## for subheadings."
       );
 
       let lastMessageId: string | null = null;
 
       for await (const message of messageStream) {
         if (!lastMessageId) {
-          addMessage(currentThreadId, message);
+          await addMessage(currentThreadId, message);
           lastMessageId = message.id;
         } else {
-          updateMessage(currentThreadId, lastMessageId, message);
+          await updateMessage(currentThreadId, lastMessageId, message);
         }
       }
     } catch (error: unknown) {
@@ -174,21 +193,27 @@ export function ChatInterface() {
 
   if (!currentThreadId) {
     return (
-      <div className="flex-1 flex items-center justify-center text-[var(--foreground)]">
-        Select or create a new chat to get started
+      <div className="flex-1 flex items-center justify-center text-[var(--foreground)] bg-gradient-to-br from-[var(--claude-dark-300)] to-[var(--claude-dark-700)]">
+        <div className="text-center p-8 max-w-md">
+          <div className="mb-6 mx-auto w-16 h-16 rounded-full bg-[var(--surface-light)] flex items-center justify-center">
+            <ChatBubbleLeftIcon className="w-8 h-8 text-[var(--claude-purple-light)]" />
+          </div>
+          <h2 className="text-xl font-medium mb-2">Welcome to ChatClaude</h2>
+          <p className="text-gray-400">Select an existing conversation or create a new chat to get started.</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-[var(--claude-dark-100)]">
+    <div className="flex-1 flex flex-col bg-gradient-to-b from-[var(--claude-dark-200)] to-[var(--claude-dark-300)]">
       <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6">
         {currentThread?.messages.map((message, index) => (
           <div
             key={message.id}
             className={`flex ${
               message.role === 'assistant' ? 'justify-start' : 'justify-end'
-            } ${index === 0 ? '' : 'mt-3'}`}
+            } ${index === 0 ? '' : 'mt-6'}`}
           >
             <div
               className={`relative group max-w-[85%] ${
@@ -198,16 +223,16 @@ export function ChatInterface() {
               {message.role === 'user' && (
                 <button
                   onClick={() => startEditing(message.id, message.content)}
-                  className="absolute -left-10 top-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                  className="absolute -left-10 top-3 opacity-0 group-hover:opacity-100 transition-all duration-200 p-1.5 rounded-full bg-[var(--surface-light)] hover:bg-[var(--surface-hover)] text-gray-400 hover:text-white"
                 >
-                  <PencilIcon className="w-4 h-4 text-gray-400 hover:text-white" />
+                  <PencilIcon className="w-3.5 h-3.5" />
                 </button>
               )}
               <div
-                className={`rounded-2xl p-4 shadow-sm ${
+                className={`rounded-[var(--radius-lg)] p-5 shadow-[var(--shadow-md)] ${
                   message.role === 'assistant'
-                    ? 'bg-[var(--claude-dark-50)] text-[var(--foreground)]'
-                    : 'bg-[var(--claude-purple)] text-white'
+                    ? 'bg-[var(--claude-dark-100)] border border-[var(--border-color)] text-[var(--foreground)]'
+                    : 'bg-gradient-to-br from-[var(--claude-purple)] to-[var(--claude-purple-dark)] text-white'
                 }`}
               >
                 {editingMessageId === message.id ? (
@@ -225,10 +250,10 @@ export function ChatInterface() {
                   <MarkdownMessage content={message.content} />
                 )}
               </div>
-              <div className={`text-xs mt-1 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200 ${
+              <div className={`text-xs mt-2 text-gray-400 opacity-0 group-hover:opacity-100 transition-all duration-200 ${
                 message.role === 'assistant' ? 'text-left' : 'text-right'
               }`}>
-                {new Date(message.createdAt).toLocaleTimeString()}
+                {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </div>
             </div>
           </div>
@@ -236,22 +261,39 @@ export function ChatInterface() {
         <div ref={messagesEndRef} />
       </div>
 
-      <form
-        onSubmit={handleSubmit}
-        className="relative px-4 py-3 border-t border-[var(--claude-dark-300)] bg-[var(--claude-dark-200)] group"
-      >
-        <div className="absolute bottom-full left-4 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-          <ModelSelector />
-        </div>
-        <MarkdownInput
-          value={input}
-          onChange={setInput}
-          onSubmit={submitMessage}
-          placeholder="Type your message..."
-          disabled={isLoading}
-          className="flex-1"
-        />
-      </form>
+      <div className="border-t border-[var(--border-color)] bg-[var(--claude-dark-200)] p-4">
+        <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
+          <div className="relative">
+            <MarkdownInput
+              value={input}
+              onChange={setInput}
+              onSubmit={submitMessage}
+              disabled={isLoading}
+              placeholder={isLoading ? "Claude is thinking..." : "Message Claude..."}
+              className="w-full py-3 pl-4 pr-[120px] rounded-[var(--radius-lg)] border border-[var(--border-color)] bg-[var(--claude-dark-100)] text-[var(--foreground)] shadow-[var(--shadow-sm)] hover:border-[var(--claude-purple-light)] focus:border-[var(--claude-purple-light)] transition-all duration-200"
+            />
+            <div className="absolute right-2 bottom-2 flex space-x-2">
+              <ModelSelector />
+              
+              <button
+                type="submit"
+                disabled={!input.trim() || isLoading}
+                className="px-3.5 py-1.5 rounded-[var(--radius-md)] bg-[var(--claude-purple)] hover:bg-[var(--claude-purple-dark)] text-white font-medium text-sm transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoading ? "Thinking..." : "Send"}
+              </button>
+            </div>
+          </div>
+          <div className="mt-2 text-xs text-gray-500 flex justify-between">
+            <div>Pro tip: Press <kbd className="px-1.5 py-0.5 rounded bg-[var(--claude-dark-300)] text-xs font-mono">Shift + Enter</kbd> to submit</div>
+            <div>
+              {isLoading && (
+                <span>Press <kbd className="px-1.5 py-0.5 rounded bg-[var(--claude-dark-300)] text-xs font-mono">Ctrl + C</kbd> to stop generation</span>
+              )}
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

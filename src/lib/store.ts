@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { supabase, DbThread, DbMessage } from './supabase'
+import { getLoggedInUser } from './auth'
 
 // Check if Supabase is configured
 const isSupabaseConfigured = !!(
@@ -155,7 +156,7 @@ export type Thread = {
 type ChatStore = {
   threads: Thread[]
   currentThreadId: string | null
-  selectedModel: 'claude-3-opus-20240229' | 'claude-3-sonnet-20240229' | 'claude-2.1'
+  selectedModel: 'claude-3-opus-20240229' | 'claude-3-5-sonnet-20240620' | 'claude-3-7-sonnet-20250219'
   isLoading: boolean
   loadThreads: () => Promise<void>
   addThread: () => Promise<void>
@@ -166,6 +167,7 @@ type ChatStore = {
   setSelectedModel: (model: ChatStore['selectedModel']) => void
   updateThreadTitle: (threadId: string, title: string) => Promise<void>
   deleteThread: (threadId: string) => Promise<void>
+  resetState: () => void
 }
 
 export const useStore = create<ChatStore>()(
@@ -173,7 +175,7 @@ export const useStore = create<ChatStore>()(
     (set, get) => ({
       threads: [],
       currentThreadId: null,
-      selectedModel: 'claude-3-opus-20240229',
+      selectedModel: 'claude-3-7-sonnet-20250219',
       isLoading: false,
 
       loadThreads: async () => {
@@ -182,7 +184,8 @@ export const useStore = create<ChatStore>()(
         }
 
         try {
-          const userId = 'default-user'
+          const user = getLoggedInUser()
+          const userId = user?.id || 'default-user'
           const threads = await storage.loadThreads(userId)
           set({ threads, isLoading: false })
         } catch (error) {
@@ -192,7 +195,8 @@ export const useStore = create<ChatStore>()(
       },
 
       addThread: async () => {
-        const userId = 'default-user'
+        const user = getLoggedInUser()
+        const userId = user?.id || 'default-user'
         const threadId = Math.random().toString(36).substring(7)
         const now = new Date()
 
@@ -235,8 +239,10 @@ export const useStore = create<ChatStore>()(
 
         try {
           await storage.addMessage(threadId, message)
+          return Promise.resolve()
         } catch (error) {
           console.error('Error adding message:', error)
+          return Promise.reject(error)
         }
       },
 
@@ -257,14 +263,16 @@ export const useStore = create<ChatStore>()(
 
         try {
           await storage.updateMessage(messageId, message)
+          return Promise.resolve()
         } catch (error) {
           console.error('Error updating message:', error)
+          return Promise.reject(error)
         }
       },
 
       deleteMessagesAfter: async (threadId, messageIndex) => {
         const thread = get().threads.find((t) => t.id === threadId)
-        if (!thread) return
+        if (!thread) return Promise.resolve()
 
         const messagesToDelete = thread.messages.slice(messageIndex + 1)
         const messageIds = messagesToDelete.map((msg) => msg.id)
@@ -282,9 +290,13 @@ export const useStore = create<ChatStore>()(
         }))
 
         try {
-          await storage.deleteMessages(messageIds)
+          if (messageIds.length > 0) {
+            await storage.deleteMessages(messageIds)
+          }
+          return Promise.resolve()
         } catch (error) {
           console.error('Error deleting messages:', error)
+          return Promise.reject(error)
         }
       },
 
@@ -302,12 +314,11 @@ export const useStore = create<ChatStore>()(
         }))
 
         try {
-          await storage.updateThread(threadId, { 
-            title, 
-            updated_at: new Date().toISOString() 
-          })
+          await storage.updateThread(threadId, { title })
+          return Promise.resolve()
         } catch (error) {
           console.error('Error updating thread title:', error)
+          return Promise.reject(error)
         }
       },
 
@@ -332,6 +343,14 @@ export const useStore = create<ChatStore>()(
       setSelectedModel: (model) => {
         set({ selectedModel: model })
       },
+
+      resetState: () => {
+        set({
+          threads: [],
+          currentThreadId: null,
+          isLoading: false
+        })
+      }
     }),
     {
       name: 'chat-storage',

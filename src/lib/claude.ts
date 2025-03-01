@@ -57,9 +57,14 @@ export async function sendMessage(messages: Message[], model: string, system?: s
 export async function* streamMessage(
   messages: Message[],
   model: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  system?: string
 ) {
   try {
+    const defaultSystemPrompt = "You are a helpful assistant. Always respond in markdown format. Use code blocks with appropriate language tags for any code examples, like ```javascript ... ``` for JavaScript code.";
+    
+    const systemPrompt = system || defaultSystemPrompt;
+    
     const stream = await anthropic.messages.stream({
       model: model,
       max_tokens: 4096,
@@ -69,6 +74,7 @@ export async function* streamMessage(
           role: msg.role as 'user' | 'assistant',
           content: msg.content,
         })),
+      system: systemPrompt,
     }, { signal });
 
     let messageId = '';
