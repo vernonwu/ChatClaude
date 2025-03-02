@@ -54,6 +54,16 @@
   --radius-lg: 0.75rem;
   --radius-xl: 1rem;
   --radius-full: 9999px;
+  
+  /* Responsive breakpoints */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  
+  /* Mobile sidebar width */
+  --sidebar-width-mobile: 80%;
+  --sidebar-width: 16rem;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -63,6 +73,11 @@
   }
 }
 
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
 body {
   color: var(--foreground);
   background: var(--background);
@@ -70,6 +85,7 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
 }
 
 code {
@@ -99,4 +115,23 @@ code {
 *:focus-visible {
   outline: none;
   box-shadow: var(--focus-ring);
+}
+
+/* Mobile optimizations */
+@media (max-width: 767px) {
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  
+  input, textarea, button {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+}
+
+/* Fix for ios height issues */
+@supports (-webkit-touch-callout: none) {
+  .h-screen {
+    height: -webkit-fill-available;
+  }
 }

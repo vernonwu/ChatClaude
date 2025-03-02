@@ -7,11 +7,13 @@ import { AccountSettings } from '@/components/AccountSettings';
 import { useState, useEffect } from 'react';
 import { useStore } from '@/lib/store';
 import { isAuthenticated} from '@/lib/auth';
+import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 
 export default function Home() {
   const [isHovered, setIsHovered] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const [isAuthed, setIsAuthed] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { loadThreads, isLoading, resetState } = useStore();
 
   useEffect(() => {
@@ -23,6 +25,35 @@ export default function Home() {
       loadThreads();
     }
   }, [loadThreads]);
+
+  useEffect(() => {
+    // Close sidebar when clicking outside on mobile
+    const handleClickOutside = (e: MouseEvent) => {
+      if (isMobileMenuOpen) {
+        const sidebar = document.getElementById('sidebar');
+        const toggle = document.getElementById('mobile-menu-toggle');
+        if (sidebar && 
+            toggle && 
+            !sidebar.contains(e.target as Node) && 
+            !toggle.contains(e.target as Node)) {
+          setIsMobileMenuOpen(false);
+        }
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [isMobileMenuOpen]);
+
+  // Listen for custom closeMobileMenu event from Sidebar
+  useEffect(() => {
+    const handleCloseMobileMenu = () => {
+      setIsMobileMenuOpen(false);
+    };
+
+    document.addEventListener('closeMobileMenu', handleCloseMobileMenu);
+    return () => document.removeEventListener('closeMobileMenu', handleCloseMobileMenu);
+  }, []);
 
   const handleAuthSuccess = () => {
     setIsAuthed(true);
@@ -53,15 +84,42 @@ export default function Home() {
   }
 
   return (
-    <main className="relative flex h-screen bg-[var(--claude-dark-300)]">
+    <main className="relative flex h-screen bg-[var(--claude-dark-300)] overflow-hidden">
+      {/* Mobile menu toggle */}
+      <button 
+        id="mobile-menu-toggle"
+        className="md:hidden fixed z-20 top-4 left-4 p-2 rounded-full bg-[var(--claude-dark-200)] text-white"
+        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+      >
+        {isMobileMenuOpen ? 
+          <XMarkIcon className="w-6 h-6" /> : 
+          <Bars3Icon className="w-6 h-6" />
+        }
+      </button>
+
+      {/* Sidebar */}
       <div 
-        className="fixed left-0 top-0 bottom-0 w-64 z-10"
+        id="sidebar"
+        className={`fixed md:relative z-10 h-full 
+                   md:w-[var(--sidebar-width)] w-[var(--sidebar-width-mobile)] max-w-xs
+                   transform transition-transform duration-300 ease-in-out
+                   ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
         <Sidebar isHovered={isHovered} />
       </div>
-      <div className="flex-1 flex flex-col pl-64">
+
+      {/* Overlay for mobile */}
+      {isMobileMenuOpen && (
+        <div 
+          className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-[5]" 
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Main content */}
+      <div className="flex-1 flex flex-col md:pl-0 pl-0 w-full">
         <ChatInterface />
       </div>
       <AccountSettings onLogout={handleLogout} />
