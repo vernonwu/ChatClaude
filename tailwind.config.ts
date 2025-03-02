@@ -5,6 +5,7 @@ const config: Config = {
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+    './safelist.txt',
   ],
   theme: {
     extend: {
@@ -15,6 +16,9 @@ const config: Config = {
         'lg': '1024px',
         'xl': '1280px',
         '2xl': '1536px',
+      },
+      touchAction: {
+        'pan-y': 'pan-y',
       },
     },
   },

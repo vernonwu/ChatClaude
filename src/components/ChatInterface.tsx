@@ -206,8 +206,8 @@ export function ChatInterface() {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-gradient-to-b from-[var(--claude-dark-200)] to-[var(--claude-dark-300)]">
-      <div className="flex-1 overflow-y-auto px-2 md:px-4 py-6 space-y-6">
+    <div className="flex-1 flex flex-col h-full bg-gradient-to-b from-[var(--claude-dark-200)] to-[var(--claude-dark-300)]">
+      <div className="flex-1 overflow-y-auto overscroll-behavior-y-contain px-2 md:px-4 py-6 space-y-6 touch-pan-y">
         {currentThread?.messages.map((message, index) => (
           <div
             key={message.id}
@@ -251,7 +251,7 @@ export function ChatInterface() {
                   <MarkdownMessage content={message.content} />
                 )}
               </div>
-              <div className={`text-xs mt-2 text-gray-400 opacity-0 group-hover:opacity-100 transition-all duration-200 ${
+              <div className={`text-xs mt-2 text-gray-400 opacity-0 group-hover:opacity-100 md:group-hover:opacity-100 transition-all duration-200 ${
                 message.role === 'assistant' ? 'text-left' : 'text-right'
               }`}>
                 {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -286,7 +286,7 @@ export function ChatInterface() {
             </div>
           </div>
           <div className="mt-2 text-xs text-gray-500 flex flex-wrap md:flex-nowrap justify-between">
-            <div className="hidden md:block">Pro tip: Press <kbd className="px-1.5 py-0.5 rounded bg-[var(--claude-dark-300)] text-xs font-mono">Shift + Enter</kbd> to submit</div>
+            <div className="hidden md:block">Pro tip: Press <kbd className="px-1.5 py-0.5 rounded bg-[var(--claude-dark-300)] text-xs font-mono">Ctrl + Enter</kbd> to submit</div>
             <div>
               {isLoading && (
                 <span>Press <kbd className="px-1.5 py-0.5 rounded bg-[var(--claude-dark-300)] text-xs font-mono">Ctrl + C</kbd> to stop</span>

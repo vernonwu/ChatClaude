@@ -1,0 +1,10 @@
+/* Safelist for touch scrolling */
+.touch-pan-y {
+  touch-action: pan-y;
+}
+.-webkit-overflow-scrolling-touch {
+  -webkit-overflow-scrolling: touch;
+}
+.overscroll-behavior-y-contain {
+  overscroll-behavior-y: contain;
+} 

@@ -14,7 +14,7 @@ export default function Home() {
   const [isClient, setIsClient] = useState(false);
   const [isAuthed, setIsAuthed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { loadThreads, isLoading, resetState } = useStore();
+  const { loadThreads, isLoading, resetState, setMobileSidebarOpen } = useStore();
 
   useEffect(() => {
     setIsClient(true);
@@ -25,6 +25,11 @@ export default function Home() {
       loadThreads();
     }
   }, [loadThreads]);
+
+  // Sync the local mobile menu state with the global store
+  useEffect(() => {
+    setMobileSidebarOpen(isMobileMenuOpen);
+  }, [isMobileMenuOpen, setMobileSidebarOpen]);
 
   useEffect(() => {
     // Close sidebar when clicking outside on mobile
@@ -84,7 +89,7 @@ export default function Home() {
   }
 
   return (
-    <main className="relative flex h-screen bg-[var(--claude-dark-300)] overflow-hidden">
+    <main className="relative flex h-screen bg-[var(--claude-dark-300)]">
       {/* Mobile menu toggle */}
       <button 
         id="mobile-menu-toggle"
@@ -119,7 +124,7 @@ export default function Home() {
       )}
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col md:pl-0 pl-0 w-full">
+      <div className="flex-1 flex flex-col md:pl-0 pl-0 w-full h-full">
         <ChatInterface />
       </div>
       <AccountSettings onLogout={handleLogout} />

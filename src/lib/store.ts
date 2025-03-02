@@ -153,31 +153,36 @@ export type Thread = {
   updatedAt: Date
 }
 
-type ChatStore = {
-  threads: Thread[]
-  currentThreadId: string | null
-  selectedModel: 'claude-3-opus-20240229' | 'claude-3-5-sonnet-20240620' | 'claude-3-7-sonnet-20250219'
-  isLoading: boolean
-  loadThreads: () => Promise<void>
-  addThread: () => Promise<void>
-  setCurrentThread: (threadId: string) => void
-  addMessage: (threadId: string, message: Message) => Promise<void>
-  updateMessage: (threadId: string, messageId: string, message: Message) => Promise<void>
-  deleteMessagesAfter: (threadId: string, messageIndex: number) => Promise<void>
-  setSelectedModel: (model: ChatStore['selectedModel']) => void
-  updateThreadTitle: (threadId: string, title: string) => Promise<void>
-  deleteThread: (threadId: string) => Promise<void>
-  resetState: () => void
+export interface StoreState {
+  threads: Thread[];
+  currentThreadId: string | null;
+  selectedModel: string;
+  isMobileSidebarOpen: boolean;
+  isLoading: boolean;
+  
+  // actions
+  addThread: () => void;
+  setCurrentThread: (threadId: string) => void;
+  addMessage: (threadId: string, message: Message) => Promise<void>;
+  updateMessage: (threadId: string, messageId: string, message: Message) => Promise<void>;
+  deleteMessagesAfter: (threadId: string, messageIndex: number) => Promise<void>;
+  updateThreadTitle: (threadId: string, title: string) => Promise<void>;
+  deleteThread: (threadId: string) => void;
+  setSelectedModel: (model: string) => void;
+  resetState: () => void;
+  loadThreads: () => Promise<void>;
+  setMobileSidebarOpen: (isOpen: boolean) => void;
 }
 
-export const useStore = create<ChatStore>()(
+export const useStore = create<StoreState>()(
   persist(
     (set, get) => ({
       threads: [],
       currentThreadId: null,
-      selectedModel: 'claude-3-7-sonnet-20250219',
+      selectedModel: 'claude-3-5-sonnet-20240620',
+      isMobileSidebarOpen: false,
       isLoading: false,
-
+      
       loadThreads: async () => {
         if (typeof window !== 'undefined') {
           set({ isLoading: true })
@@ -350,11 +355,17 @@ export const useStore = create<ChatStore>()(
           currentThreadId: null,
           isLoading: false
         })
-      }
+      },
+
+      setMobileSidebarOpen: (isOpen: boolean) => set({ isMobileSidebarOpen: isOpen }),
     }),
     {
-      name: 'chat-storage',
-      skipHydration: true,
+      name: 'chat-claude-storage',
+      partialize: (state) => ({
+        threads: state.threads,
+        currentThreadId: state.currentThreadId,
+        selectedModel: state.selectedModel,
+      }),
     }
   )
 ) 

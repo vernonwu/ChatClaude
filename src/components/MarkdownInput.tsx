@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MarkdownMessage } from './MarkdownMessage';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { cn } from '@/lib/utils';
+import { useStore } from '@/lib/store';
 
 interface MarkdownInputProps {
   value: string;
@@ -23,24 +24,48 @@ export function MarkdownInput({
   className,
 }: MarkdownInputProps) {
   const [showPreview, setShowPreview] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const { isMobileSidebarOpen } = useStore();
+  
+  // Check if device is mobile on mount and on resize
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    // Initial check
+    checkIsMobile();
+    
+    // Listen for window resize
+    window.addEventListener('resize', checkIsMobile);
+    
+    return () => {
+      window.removeEventListener('resize', checkIsMobile);
+    };
+  }, []);
+
+  // Determine if the toggle button should be shown
+  const shouldShowToggle = !(isMobile && isMobileSidebarOpen);
 
   return (
     <div className={className}>
       <div className="relative">
-        <div className="absolute right-2 top-2 z-10">
-          <button
-            type="button"
-            onClick={() => setShowPreview(!showPreview)}
-            className="p-1.5 rounded-full bg-[var(--surface-light)] hover:bg-[var(--surface-hover)] text-gray-400 hover:text-white transition-all duration-200"
-            aria-label={showPreview ? "Switch to edit mode" : "Switch to preview mode"}
-          >
-            {showPreview ? (
-              <EyeSlashIcon className="w-4 h-4" />
-            ) : (
-              <EyeIcon className="w-4 h-4" />
-            )}
-          </button>
-        </div>
+        {shouldShowToggle && (
+          <div className="absolute right-2 top-2 z-10">
+            <button
+              type="button"
+              onClick={() => setShowPreview(!showPreview)}
+              className="p-1.5 rounded-full bg-[var(--surface-light)] hover:bg-[var(--surface-hover)] text-gray-400 hover:text-white transition-all duration-200"
+              aria-label={showPreview ? "Switch to edit mode" : "Switch to preview mode"}
+            >
+              {showPreview ? (
+                <EyeSlashIcon className="w-4 h-4" />
+              ) : (
+                <EyeIcon className="w-4 h-4" />
+              )}
+            </button>
+          </div>
+        )}
         {showPreview ? (
           <div 
             className="min-h-[100px] max-h-[400px] overflow-y-auto p-4 rounded-[var(--radius-md)] border border-[var(--border-color)] bg-[var(--claude-dark-100)] text-[var(--foreground)] shadow-[var(--shadow-sm)]"
@@ -56,7 +81,9 @@ export function MarkdownInput({
             className={cn(
               "w-full min-h-[100px] max-h-[400px] px-4 py-3 rounded-[var(--radius-md)] border border-[var(--border-color)] bg-[var(--claude-dark-100)] text-[var(--foreground)] placeholder-gray-400",
               "focus:outline-none focus:border-[var(--claude-purple-light)] shadow-[var(--shadow-sm)] resize-y transition-all duration-200",
-              disabled && "opacity-70 cursor-not-allowed"
+              disabled && "opacity-70 cursor-not-allowed",
+              !shouldShowToggle && "pr-4", // Remove extra right padding when toggle isn't shown
+              shouldShowToggle && "pr-10" // Add extra right padding for the toggle button
             )}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {

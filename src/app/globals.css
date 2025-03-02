@@ -75,7 +75,10 @@
 
 html, body {
   height: 100%;
-  overflow: hidden;
+  /* Allow overflow on the y-axis for mobile scrolling */
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior-y: none;
 }
 
 body {
@@ -85,7 +88,8 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overflow: hidden;
+  /* Remove duplicate overflow property */
+  position: relative;
 }
 
 code {
@@ -117,6 +121,20 @@ code {
   box-shadow: var(--focus-ring);
 }
 
+/* Mobile-friendly scrolling */
+.overflow-y-auto,
+.overflow-y-scroll {
+  -webkit-overflow-scrolling: touch;
+}
+
+.touch-pan-y {
+  touch-action: pan-y;
+}
+
+.overscroll-behavior-y-contain {
+  overscroll-behavior-y: contain;
+}
+
 /* Mobile optimizations */
 @media (max-width: 767px) {
   ::-webkit-scrollbar {
@@ -126,6 +144,17 @@ code {
   
   input, textarea, button {
     font-size: 16px; /* Prevents zoom on iOS */
+  }
+  
+  /* Enable smooth scrolling for touch devices */
+  .overflow-y-auto, .overflow-y-scroll {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Make sure scrollable elements are properly scrollable on touch */
+  [class*="overflow-y-"] {
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
   }
 }
 

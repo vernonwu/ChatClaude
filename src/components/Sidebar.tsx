@@ -75,7 +75,7 @@ export function Sidebar({ isHovered }: SidebarProps) {
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-3 space-y-1.5">
+      <div className="flex-1 overflow-y-auto webkit-overflow-scrolling-touch p-3 space-y-1.5 touch-pan-y">
         {threads.length === 0 ? (
           <div className="text-center p-4 text-gray-400 text-sm">
             No conversations yet.<br />
