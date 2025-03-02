@@ -31,19 +31,16 @@ export function ModelSelector() {
     const checkIsMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
+
     // Initial check
     checkIsMobile();
-    
+
     // Add event listener for resize
     window.addEventListener('resize', checkIsMobile);
-    
+
     // Cleanup
     return () => window.removeEventListener('resize', checkIsMobile);
   }, []);
-
-  const currentModel = models.find(model => model.id === selectedModel);
-  const displayName = isMobile ? currentModel?.shortName : currentModel?.name;
 
   return (
     <div className="relative">
